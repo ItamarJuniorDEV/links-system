@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 
+use App\Http\Controllers\LinkController;
 use App\Http\Controllers\DashboardController;
 
 
@@ -26,4 +27,14 @@ Route::middleware('guest')->group(function() {
 Route::middleware('auth')->group(function() {
     Route::get('/logout', LogoutController::class)->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
+
+    Route::get('/links/create', [LinkController::class, 'create'])->name('links.create');
+    Route::post('/links/create', [LinkController::class, 'store']);    
+});
+
+// endpoints que só acessa quem tem permissão
+Route::middleware('can:atualizar,link')->group(function () {
+    Route::get('/links/{link}/edit', [LinkController::class, 'edit'])->name('links.edit');
+    Route::put('/links/{link}/edit', [LinkController::class, 'update']);
+    Route::delete('links/{link}', [LinkController::class, 'destroy'])->name('links.destroy');
 });
