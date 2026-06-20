@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 
+use App\Http\Controllers\DashboardController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,4 +25,5 @@ Route::middleware('guest')->group(function() {
 // endpoint de logout
 Route::middleware('auth')->group(function() {
     Route::get('/logout', LogoutController::class)->name('logout');
+    Route::get('/', DashboardController::class)->name('dashboard');
 });
