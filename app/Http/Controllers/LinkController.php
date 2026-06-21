@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreLinkRequest;
 use App\Http\Requests\UpdateLinkRequest;
 use App\Models\Link;
@@ -16,7 +15,7 @@ class LinkController extends Controller
 
     public function store(StoreLinkRequest $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         $next = ($user->links()->max('sort') ?? 0) + 1;
 

@@ -1,13 +1,13 @@
 <x-layout.app>
     <x-container>
         <div class="absolute top-10 left-10 flex flex-col gap-4">
-            <x-button color="ghost" :href="route('profile')">Editar Perfil</x-button>
+            <x-button color="ghost" :href="route('profile')">Editar perfil</x-button>
             <x-button color="ghost" :href="route('links.create')">Criar novo link</x-button>
             <x-button color="ghost" :href="route('logout')">Sair</x-button>
         </div>
 
         <div class="text-center space-y-4 w-2/3">
-            <x-img src="storage/{{ $user->photo }}" alt="Foto de Perfil" />
+            <x-img src="storage/{{ $user->photo }}" alt="Foto do perfil" />
 
             <div class="font-bold text-2xl tracking-wide">{{ $user->name }}</div>
 
@@ -44,7 +44,7 @@
                             {{ $link->name }}
                         </x-button>
 
-                        <x-form :route="route('links.destroy', $link)" delete onsubmit="return confirm('Tem certeza?')">
+                        <x-form :route="route('links.destroy', $link)" delete onsubmit="return confirm('Deseja realmente excluir este link?')">
 
                             <x-button color="ghost">
                                 <x-icons.trash class="w-6 h-6" />

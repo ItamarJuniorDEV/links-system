@@ -17,6 +17,6 @@ class RegisterController extends Controller
         if ($request->tryToRegister()) {
             return to_route('dashboard');
         }
-        return back()->with(['message' => 'As credenciais informadas são inválidas']);
+        return back()->with(['message' => 'E-mail ou senha inválidos.']);
     }
 }

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke()
+    public function __invoke(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         return view('dashboard', [
             'user' => $user,
