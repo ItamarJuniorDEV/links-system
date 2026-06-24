@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,7 @@ class RegisterRequest extends FormRequest
     public function tryToRegister()
     {
         $user = User::query()->create($this->validated());
+        event(new Registered($user));
         Auth::login($user);
         return true;
     }
