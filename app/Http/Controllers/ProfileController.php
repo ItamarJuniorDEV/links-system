@@ -20,10 +20,10 @@ class ProfileController extends Controller
         $data = $request->validated();
 
         if ($file = $request->photo) {
-            $data['photo'] = $file->store('photos');
+            $data['photo'] = $file->store('photos', 'public');
         }
 
         $user->fill($data)->save();
-        return back()->with('message', 'Perfil atualizado com sucesso.');
+        return back()->with('success', 'Perfil atualizado com sucesso.');
     }
 }
