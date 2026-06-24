@@ -34,12 +34,24 @@ class LinkController extends Controller
     public function update(UpdateLinkRequest $request, Link $link)
     {
         $link->fill($request->validated())->save();
-        return to_route('dashboard')->with('message', 'Alterado com sucesso!');
+        return to_route('dashboard')->with('success', 'Alterado com sucesso!');
     }
 
     public function destroy(Link $link)
     {
         $link->delete();
-        return to_route('dashboard')->with('message', 'Deletado com sucesso!');
+        return to_route('dashboard')->with('success', 'Deletado com sucesso!');
+    }
+
+    public function up(Link $link)
+    {
+        $link->moveUp();
+        return back();
+    }
+
+    public function down(Link $link)
+    {
+        $link->moveDown();
+        return back();
     }
 }
