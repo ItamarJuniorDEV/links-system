@@ -1,4 +1,4 @@
-<x-layout.app>
+<x-layout.app title="Criar conta">
     <x-container>
         <x-card title="Criar conta">
             <x-form :route="route('register')" post id="register-form">

@@ -1,9 +1,9 @@
 @props(['title' => null, 'actions' => null])
 
-<div class="card bg-base-100 w-2/3 shadow-xl">
+<div class="card bg-base-100 w-full max-w-md mx-auto shadow-xl">
     <div class="card-body">
         @if ($title)
-            <div class="card-title mb-4">{{ $title }}</div>
+            <h1 class="card-title text-xl mb-4">{{ $title }}</h1>
         @endif
 
         {{ $slot }}

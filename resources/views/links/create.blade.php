@@ -1,4 +1,4 @@
-<x-layout.app>
+<x-layout.app title="Novo link">
     <x-container>
         <x-card title="Criar novo link">
             <x-form :route="route('links.create')" post id="form">
