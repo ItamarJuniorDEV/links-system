@@ -1,0 +1,10 @@
+/.git
+/.github
+/node_modules
+/vendor
+/public/build
+/.env
+/database/database.sqlite
+/.claude
+/.mcp.json
+/boost.json
