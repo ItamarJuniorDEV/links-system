@@ -2,6 +2,7 @@
 
 > App web em Laravel 12 (Blade + DaisyUI) no estilo Linktree: cada usuário monta um perfil com vários links e expõe tudo numa página pública em `/usuario`.
 
+![ci](https://github.com/ItamarJuniorDEV/links-system/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Sobre
@@ -14,10 +15,12 @@ O usuário se cadastra, edita o perfil (foto, nome, descrição e um handle púb
 
 - Cadastro, login e logout com autenticação por sessão e rate limit no login
 - Verificação de e-mail por link, com reenvio
+- Recuperação e redefinição de senha por e-mail
 - Perfil editável: foto (com preview antes de salvar), nome, descrição e handle público
 - CRUD de links
 - Reordenação manual dos links (subir/descer)
 - Página pública do perfil em `/{handle}`, com os links abrindo em nova aba
+- Analytics de cliques e visitas, com painel (top links, origens e últimos 7 dias)
 - Autorização por dono: ninguém edita, exclui ou reordena link de outro
 - Validação por Form Request, incluindo regra própria pro formato do handle
 - Feedback de sucesso e erro com flash messages
@@ -34,6 +37,7 @@ O usuário se cadastra, edita o perfil (foto, nome, descrição e um handle púb
 | Build | Vite |
 | Banco | SQLite |
 | Testes | PHPUnit 11 (SQLite in-memory) |
+| Infra | Docker, GitHub Actions (CI) |
 
 ## Como rodar
 
@@ -57,6 +61,12 @@ npm run dev        # em um terminal (assets)
 php artisan serve  # em outro
 ```
 
+Ou com Docker (sobe tudo, builda os assets e migra):
+
+```bash
+docker compose up --build
+```
+
 A app sobe em `http://localhost:8000`. Como não há landing, `/` redireciona pro login — crie uma conta em `/register` pra começar.
 
 ## Rotas
@@ -64,6 +74,7 @@ A app sobe em `http://localhost:8000`. Como não há landing, `/` redireciona pr
 | Método | Rota | Acesso | Descrição |
 |--------|------|--------|-----------|
 | GET/POST | `/register`, `/login` | visitante | Cadastro e login |
+| GET/POST | `/forgot-password`, `/reset-password` | visitante | Recuperação de senha |
 | GET | `/logout` | autenticado | Encerra a sessão |
 | GET/POST | `/email/verify` | autenticado | Verificação de e-mail (aviso e reenvio) |
 | GET | `/` | verificado | Painel com o perfil e os links |
@@ -72,6 +83,8 @@ A app sobe em `http://localhost:8000`. Como não há landing, `/` redireciona pr
 | DELETE | `/links/{link}` | dono | Exclui link |
 | PATCH | `/links/{link}/up`, `/down` | dono | Reordena |
 | GET/PUT | `/profile` | verificado | Edita o próprio perfil |
+| GET | `/analytics` | verificado | Painel de estatísticas |
+| GET | `/l/{link}` | público | Redireciona e conta o clique |
 | GET | `/{handle}` | público | Página pública do perfil |
 
 As telas internas (painel, links, perfil) exigem e-mail verificado.
@@ -82,7 +95,7 @@ As telas internas (painel, links, perfil) exigem e-mail verificado.
 php artisan test
 ```
 
-São 37 testes rodando contra SQLite em memória (não tocam no banco de dev). Cobrem o cadastro/login/logout (com rate limit), a verificação de e-mail, a reordenação de links (swap de posição e casos de borda), a autorização dono × não-dono × visitante, o CRUD com validação e o `sort` automático, o perfil (handle único, normalização e upload de foto), a página pública, e a regra do handle isolada.
+São 45 testes rodando contra SQLite em memória (não tocam no banco de dev). Cobrem o cadastro/login/logout (com rate limit), a verificação de e-mail, a recuperação de senha, a reordenação de links (swap de posição e casos de borda), a autorização dono × não-dono × visitante, o CRUD com validação e o `sort` automático, o perfil (handle único, normalização e upload de foto), a página pública, o registro de cliques/visitas e o painel de analytics, e a regra do handle isolada.
 
 ## Decisões técnicas
 
@@ -102,6 +115,8 @@ São 37 testes rodando contra SQLite em memória (não tocam no banco de dev). C
 
 - **Reordenação por troca de `sort`.** Cada link tem um campo `sort`. Subir ou descer só troca o `sort` do link com o do vizinho (`Link::moveUp`/`moveDown`), sem reindexar a lista inteira. Nas pontas (primeiro/último) a operação é no-op.
 
+- **Analytics fora do caminho quente.** O clique passa por um redirect (`/l/{link}`) que registra o evento com `defer()` (roda depois da resposta enviada) e manda pro destino — o usuário não espera o insert. Guardo eventos crus (`clicks`/`profile_views`) e agrego no painel por uma Action cacheada (`Cache::remember`, 60s), em vez de um contador, pra poder fatiar por dia/origem depois sem pesar o dashboard. O IP nunca é guardado cru, só o `ip_hash`.
+
 - **Página pública como rota catch-all.** O perfil mora em `/{handle}`, que casa com qualquer caminho de um segmento. Por isso é a **última** rota do `web.php`: o health check `/up`, `/login`, `/profile` e as rotas de links resolvem antes, e o catch-all fica só com o que sobra. Handle inexistente cai no 404.
 
 - **Handle validado por regra própria.** O username público passa pela regra `CheckHandler` (começa com letra; só minúsculas, números, ponto, hífen e underline) e é único por usuário. Antes de validar, o `prepareForValidation` tira um `@` inicial e baixa pra minúsculo.
@@ -116,8 +131,7 @@ São 37 testes rodando contra SQLite em memória (não tocam no banco de dev). C
 
 Coisas que ficaram de fora por escopo, não por esquecimento:
 
-- Sem reset de senha (fluxo de "esqueci a senha" não implementado).
-- Os e-mails de verificação saem no driver `log` em desenvolvimento; envio real precisa configurar SMTP no `.env`.
+- Os e-mails (verificação de e-mail e recuperação de senha) saem no driver `log` em desenvolvimento; envio real precisa configurar SMTP no `.env`.
 - Em produção, as fotos iriam pra um disco público/S3 (já configurado em `filesystems.php`), não pro storage local.
 
 ## Licença
