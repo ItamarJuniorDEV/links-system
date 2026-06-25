@@ -1,14 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Auth\EmailVerificationController;
-use App\Http\Controllers\LinkController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LinkController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicProfileController;
+use App\Http\Controllers\RedirectLinkController;
+use Illuminate\Support\Facades\Route;
 
 // visitantes não logados
 Route::middleware('guest')->group(function () {
@@ -49,8 +51,13 @@ Route::middleware('auth')->group(function () {
         // acessa quem está logado - qualquer usuário
         Route::get('profile', [ProfileController::class, 'index'])->name('profile');
         Route::put('profile', [ProfileController::class, 'update']);
+
+        Route::get('/analytics', AnalyticsController::class)->name('analytics');
     });
 });
+
+// redirect que contabiliza o clique antes de mandar pro destino
+Route::get('/l/{link}', RedirectLinkController::class)->name('links.go');
 
 // página pública do perfil
 Route::get('/{handler}', PublicProfileController::class)->name('profiles.show');

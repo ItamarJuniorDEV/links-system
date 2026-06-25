@@ -13,6 +13,7 @@
         <nav class="hidden sm:flex items-center gap-1">
             @auth
                 <x-button color="ghost" size="sm" :href="route('dashboard')">Início</x-button>
+                <x-button color="ghost" size="sm" :href="route('analytics')">Estatísticas</x-button>
                 <x-button color="ghost" size="sm" :href="route('links.create')">Novo link</x-button>
                 <x-button color="ghost" size="sm" :href="route('profile')">Perfil</x-button>
                 <x-button color="ghost" size="sm" :href="route('logout')">Sair</x-button>
@@ -31,6 +32,7 @@
                 class="menu dropdown-content mt-2 z-10 w-52 gap-1 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                 @auth
                     <li><a href="{{ route('dashboard') }}">Início</a></li>
+                    <li><a href="{{ route('analytics') }}">Estatísticas</a></li>
                     <li><a href="{{ route('links.create') }}">Novo link</a></li>
                     <li><a href="{{ route('profile') }}">Perfil</a></li>
                     <li><a href="{{ route('logout') }}">Sair</a></li>

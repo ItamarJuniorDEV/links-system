@@ -14,7 +14,7 @@
 
             <div class="space-y-3">
                 @forelse ($links as $link)
-                    <a href="{{ $link->link }}" target="_blank" rel="noopener noreferrer"
+                    <a href="{{ route('links.go', $link) }}" target="_blank" rel="noopener noreferrer"
                         class="btn btn-outline btn-primary btn-block">
                         {{ $link->name }}
                     </a>
