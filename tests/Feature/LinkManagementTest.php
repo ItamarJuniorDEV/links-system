@@ -88,6 +88,6 @@ class LinkManagementTest extends TestCase
         $this->actingAs($user)
             ->delete(route('links.destroy', $link));
 
-        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+        $this->assertSoftDeleted($link);
     }
 }

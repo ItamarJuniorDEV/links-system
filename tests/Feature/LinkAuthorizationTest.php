@@ -30,7 +30,7 @@ class LinkAuthorizationTest extends TestCase
             ->delete(route('links.destroy', $link))
             ->assertRedirect(route('dashboard'));
 
-        $this->assertModelMissing($link);
+        $this->assertSoftDeleted($link);
     }
 
     public function test_nao_dono_nao_pode_editar_link_alheio(): void
