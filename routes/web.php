@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinkController;
@@ -19,6 +20,13 @@ Route::middleware('guest')->group(function () {
 
     Route::get('register', [RegisterController::class, 'index'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+
+    // recuperação de senha
+    Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'email'])
+        ->middleware('throttle:6,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'reset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.update');
 });
 
 // usuários logados

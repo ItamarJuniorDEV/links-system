@@ -6,6 +6,10 @@
                 <x-input name="password" type="password" placeholder="Senha" />
             </x-form>
 
+            <div class="text-sm">
+                <x-a :href="route('password.request')">Esqueci minha senha</x-a>
+            </div>
+
             <x-slot:actions>
                 <x-a :href="route('register')">Criar conta</x-a>
                 <x-button form="login-form">Entrar</x-button>
