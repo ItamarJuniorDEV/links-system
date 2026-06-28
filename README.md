@@ -101,7 +101,7 @@ São 45 testes rodando contra SQLite em memória (não tocam no banco de dev). C
 
 - **Autenticação por sessão, sem Sanctum.** É um app renderizado no servidor e aberto no navegador, então uso o guard padrão `web` (driver `session`, provider Eloquent sobre `App\Models\User`). Guard único, sem múltiplos guards. Sanctum ou Passport não entram porque não existe cliente externo trocando token.
 
-- **Fluxo de auth escrito na mão.** Em vez de um starter kit (Breeze/Jetstream), login, cadastro e logout são controllers próprios apoiados em Form Requests: o `MakeLoginRequest` busca o usuário e chama `Auth::login`, o `RegisterRequest` cria e já autentica, o logout faz `Auth::logout` + `session()->invalidate()`. O cadastro dispara o evento `Registered` (que envia o e-mail de verificação) e as telas internas ficam atrás do middleware `verified`. Era justamente o que eu queria praticar aqui: o fluxo sem mágica de pacote.
+- **Fluxo de auth escrito na mão.** Em vez de um starter kit (Breeze/Jetstream), login, cadastro e logout são controllers próprios apoiados em Form Requests: o `MakeLoginRequest` valida as credenciais com `Auth::attempt`, o `RegisterRequest` cria e já autentica, o logout faz `Auth::logout` + `session()->invalidate()`. O cadastro dispara o evento `Registered` (que envia o e-mail de verificação) e as telas internas ficam atrás do middleware `verified`. Era justamente o que eu queria praticar aqui: o fluxo sem mágica de pacote.
 
 - **Rate limit no login.** A rota de login usa um limiter próprio (`throttle:login`, definido no `AppServiceProvider`) com chave por e-mail + IP, 5 por minuto. Trava tentativa em massa sem prender quem erra a senha de vez em quando.
 
