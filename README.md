@@ -7,7 +7,7 @@
 
 ## Sobre
 
-Quase tudo que eu venho fazendo é API, então quis um projeto pra praticar o outro lado do Laravel: aplicação renderizada no servidor, com Blade, componentes e build de assets com Vite. A ideia de um "link na bio" (tipo Linktree) é pequena de propósito — o domínio cabe na cabeça — mas tem o suficiente pra exercitar o que me interessava: componentizar a UI sem repetir markup, manter um visual coeso com um tema próprio, e resolver autorização e reordenação sem gambiarra.
+Quase tudo que eu venho fazendo é API, então quis um projeto pra praticar o outro lado do Laravel: aplicação renderizada no servidor, com Blade, componentes e build de assets com Vite. A ideia de um "link na bio" (tipo Linktree) é pequena de propósito (o domínio cabe na cabeça), mas tem o suficiente pra exercitar o que me interessava: componentizar a UI sem repetir markup, manter um visual coeso com um tema próprio, e resolver autorização e reordenação sem gambiarra.
 
 O usuário se cadastra, edita o perfil (foto, nome, descrição e um handle público), cria seus links e reordena na mão. A página pública fica em `linkssystem.com.br/handle` e é o que um visitante veria ao abrir o link da bio.
 
@@ -67,7 +67,7 @@ Ou com Docker (sobe tudo, builda os assets e migra):
 docker compose up --build
 ```
 
-A app sobe em `http://localhost:8000`. Como não há landing, `/` redireciona pro login — crie uma conta em `/register` pra começar.
+A app sobe em `http://localhost:8000`. Como não há landing, `/` redireciona pro login. Crie uma conta em `/register` pra começar.
 
 ## Rotas
 
@@ -95,33 +95,33 @@ As telas internas (painel, links, perfil) exigem e-mail verificado.
 php artisan test
 ```
 
-São 45 testes rodando contra SQLite em memória (não tocam no banco de dev). Cobrem o cadastro/login/logout (com rate limit), a verificação de e-mail, a recuperação de senha, a reordenação de links (swap de posição e casos de borda), a autorização dono × não-dono × visitante, o CRUD com validação e o `sort` automático, o perfil (handle único, normalização e upload de foto), a página pública, o registro de cliques/visitas e o painel de analytics, e a regra do handle isolada.
+São 45 testes rodando contra SQLite em memória (não tocam no banco de dev). Cobrem o cadastro/login/logout (com rate limit), a verificação de e-mail, a recuperação de senha, a reordenação de links (swap de posição e casos de borda), a autorização dono vs não-dono vs visitante, o CRUD com validação e o `sort` automático, o perfil (handle único, normalização e upload de foto), a página pública, o registro de cliques/visitas e o painel de analytics, e a regra do handle isolada.
 
 ## Decisões técnicas
 
-- **Autenticação por sessão, sem Sanctum.** É um app renderizado no servidor e aberto no navegador, então uso o guard padrão `web` (driver `session`, provider Eloquent sobre `App\Models\User`) — guard único, sem múltiplos guards. Sanctum ou Passport não entram porque não existe cliente externo trocando token.
+- **Autenticação por sessão, sem Sanctum.** É um app renderizado no servidor e aberto no navegador, então uso o guard padrão `web` (driver `session`, provider Eloquent sobre `App\Models\User`). Guard único, sem múltiplos guards. Sanctum ou Passport não entram porque não existe cliente externo trocando token.
 
-- **Fluxo de auth escrito na mão.** Em vez de um starter kit (Breeze/Jetstream), login, cadastro e logout são controllers próprios apoiados em Form Requests: o `MakeLoginRequest` busca o usuário e chama `Auth::login`, o `RegisterRequest` cria e já autentica, o logout faz `Auth::logout` + `session()->invalidate()`. O cadastro dispara o evento `Registered` (que envia o e-mail de verificação) e as telas internas ficam atrás do middleware `verified`. Era justamente o que eu queria praticar aqui — o fluxo sem mágica de pacote.
+- **Fluxo de auth escrito na mão.** Em vez de um starter kit (Breeze/Jetstream), login, cadastro e logout são controllers próprios apoiados em Form Requests: o `MakeLoginRequest` busca o usuário e chama `Auth::login`, o `RegisterRequest` cria e já autentica, o logout faz `Auth::logout` + `session()->invalidate()`. O cadastro dispara o evento `Registered` (que envia o e-mail de verificação) e as telas internas ficam atrás do middleware `verified`. Era justamente o que eu queria praticar aqui: o fluxo sem mágica de pacote.
 
 - **Rate limit no login.** A rota de login usa um limiter próprio (`throttle:login`, definido no `AppServiceProvider`) com chave por e-mail + IP, 5 por minuto. Trava tentativa em massa sem prender quem erra a senha de vez em quando.
 
 - **Hash e força de senha no lugar certo.** O `password` tem cast `hashed` no model, então o hash sai no `save()` sem `Hash::make` espalhado pelos controllers. A política de senha vem de `Password::defaults()` no `AppServiceProvider`: mínimo 8 em qualquer ambiente e, em produção, também maiúsculas/minúsculas e checagem contra vazamentos (`uncompromised`).
 
-- **No cadastro, confirmo o e-mail (não a senha).** A regra `confirmed` está no campo `email` (espera `email_confirmation`). Como o login é por e-mail e o perfil é público, digitar errado tranca o acesso — confirmar o e-mail evita isso. A senha não tem campo de confirmação de propósito.
+- **No cadastro, confirmo o e-mail (não a senha).** A regra `confirmed` está no campo `email` (espera `email_confirmation`). Como o login é por e-mail e o perfil é público, digitar errado tranca o acesso, e confirmar o e-mail evita isso. A senha não tem campo de confirmação de propósito.
 
-- **Autorização por Policy auto-descoberta.** A `LinkPolicy` é resolvida pela convenção de nome (no Laravel 12 não precisa registrar). O método `atualizar` é aplicado nas rotas via `can:atualizar,link`, e o `{link}` já chega resolvido por route model binding — então a checagem de dono roda antes de entrar no controller. Visitante nessas rotas é mandado pro login pelo middleware `auth`.
+- **Autorização por Policy auto-descoberta.** A `LinkPolicy` é resolvida pela convenção de nome (no Laravel 12 não precisa registrar). O método `atualizar` é aplicado nas rotas via `can:atualizar,link`, e o `{link}` já chega resolvido por route model binding, então a checagem de dono roda antes de entrar no controller. Visitante nessas rotas é mandado pro login pelo middleware `auth`.
 
 - **Mass assignment liberado com `Model::unguard()`.** Liguei `unguard()` global no `AppServiceProvider` em vez de manter `$fillable` em cada model. É uma troca consciente: como toda entrada passa por Form Request antes de chegar no Eloquent, a validação fica na borda e os models ficam sem cerimônia. Num projeto maior eu reavaliaria.
 
 - **Reordenação por troca de `sort`.** Cada link tem um campo `sort`. Subir ou descer só troca o `sort` do link com o do vizinho (`Link::moveUp`/`moveDown`), sem reindexar a lista inteira. Nas pontas (primeiro/último) a operação é no-op.
 
-- **Analytics fora do caminho quente.** O clique passa por um redirect (`/l/{link}`) que registra o evento com `defer()` (roda depois da resposta enviada) e manda pro destino — o usuário não espera o insert. Guardo eventos crus (`clicks`/`profile_views`) e agrego no painel por uma Action cacheada (`Cache::remember`, 60s), em vez de um contador, pra poder fatiar por dia/origem depois sem pesar o dashboard. O IP nunca é guardado cru, só o `ip_hash`.
+- **Analytics fora do caminho quente.** O clique passa por um redirect (`/l/{link}`) que registra o evento com `defer()` (roda depois da resposta enviada) e manda pro destino. O usuário não espera o insert. Guardo eventos crus (`clicks`/`profile_views`) e agrego no painel por uma Action cacheada (`Cache::remember`, 60s), em vez de um contador, pra poder fatiar por dia/origem depois sem pesar o dashboard. O IP nunca é guardado cru, só o `ip_hash`.
 
 - **Página pública como rota catch-all.** O perfil mora em `/{handle}`, que casa com qualquer caminho de um segmento. Por isso é a **última** rota do `web.php`: o health check `/up`, `/login`, `/profile` e as rotas de links resolvem antes, e o catch-all fica só com o que sobra. Handle inexistente cai no 404.
 
 - **Handle validado por regra própria.** O username público passa pela regra `CheckHandler` (começa com letra; só minúsculas, números, ponto, hífen e underline) e é único por usuário. Antes de validar, o `prepareForValidation` tira um `@` inicial e baixa pra minúsculo.
 
-- **Front-end configurado no CSS.** O Tailwind 4 é "CSS-first": não há `tailwind.config.js`, então fonte, tema e plugins ficam no próprio `app.css` (`@theme`, `@plugin "daisyui"` e o tema custom em `@plugin "daisyui/theme"` com `data-theme="linkssystem"`). A UI é montada com componentes Blade (`x-button`, `x-card`, `x-form`, `x-navbar`…), e o Vite com `@tailwindcss/vite` faz o build.
+- **Front-end configurado no CSS.** O Tailwind 4 é "CSS-first": não há `tailwind.config.js`, então fonte, tema e plugins ficam no próprio `app.css` (`@theme`, `@plugin "daisyui"` e o tema custom em `@plugin "daisyui/theme"` com `data-theme="linkssystem"`). A UI é montada com componentes Blade (`x-button`, `x-card`, `x-form`, `x-navbar` etc.), e o Vite com `@tailwindcss/vite` faz o build.
 
 - **Tudo no banco, sem serviço externo.** Banco, sessão, cache e fila usam o driver de banco sobre SQLite. Pra rodar não precisa de Redis nem nada além do PHP e do arquivo SQLite.
 
