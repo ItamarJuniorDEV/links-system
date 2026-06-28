@@ -24,6 +24,7 @@ class ProfileController extends Controller
         }
 
         $user->fill($data)->save();
+
         return back()->with('success', 'Perfil atualizado com sucesso.');
     }
 }

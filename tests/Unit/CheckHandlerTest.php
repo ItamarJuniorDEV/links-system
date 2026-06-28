@@ -11,7 +11,7 @@ class CheckHandlerTest extends TestCase
     {
         $reprovou = false;
 
-        (new CheckHandler())->validate('handler', $valor, function () use (&$reprovou) {
+        (new CheckHandler)->validate('handler', $valor, function () use (&$reprovou) {
             $reprovou = true;
         });
 

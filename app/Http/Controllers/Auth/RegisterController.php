@@ -17,6 +17,7 @@ class RegisterController extends Controller
         if ($request->tryToRegister()) {
             return to_route('dashboard');
         }
+
         return back()->with('error', 'E-mail ou senha inválidos.');
     }
 }

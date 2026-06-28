@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -29,6 +29,7 @@ class RegisterRequest extends FormRequest
         $user = User::query()->create($this->validated());
         event(new Registered($user));
         Auth::login($user);
+
         return true;
     }
 }

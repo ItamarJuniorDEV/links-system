@@ -17,6 +17,7 @@ class LoginController extends Controller
         if ($request->attempt()) {
             return to_route('dashboard');
         }
+
         return back()->with('error', 'E-mail ou senha incorretos.');
     }
 }
