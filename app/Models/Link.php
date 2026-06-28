@@ -6,9 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @method bool|null delete()
- */
 class Link extends Model
 {
     use HasFactory;
@@ -24,18 +21,22 @@ class Link extends Model
         return $this->hasMany(Click::class);
     }
 
-    private function move($to)
+    private function move($direction)
     {
-        $order = $this->sort;
-        $newOrder = $order + $to;
+        $neighbor = $direction < 0
+            ? $this->user->links()->where('sort', '<', $this->sort)->orderByDesc('sort')->first()
+            : $this->user->links()->where('sort', '>', $this->sort)->orderBy('sort')->first();
 
-        $swapWith = $this->user->links()->where('sort', '=', $newOrder)->first();
-        if (! $swapWith) {
+        if (! $neighbor) {
             return;
         }
 
-        $swapWith->fill(['sort' => $order])->save();
-        $this->fill(['sort' => $newOrder])->save();
+        $sort = $this->sort;
+        $this->sort = $neighbor->sort;
+        $neighbor->sort = $sort;
+
+        $this->save();
+        $neighbor->save();
     }
 
     public function moveUp()
